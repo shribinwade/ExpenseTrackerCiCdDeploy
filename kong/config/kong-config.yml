@@ -1,0 +1,38 @@
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: expense-service
+    url: http://expense-service:9820      # ✅ container name + actual port
+    routes:
+      - name: expense-route
+        paths:
+          - /expense/v1
+        strip_path: false
+        preserve_host: false
+    plugins:
+      - name: auth-injector
+        config:
+          auth_service_url: "http://auth-service:9895/auth/v1/ping"   # ✅ fixed port
+
+  - name: auth-service
+    url: http://auth-service:9895         # ✅ container name + actual port
+    routes:
+      - name: auth-route
+        paths:
+          - /auth/v1
+        strip_path: false
+        preserve_host: false
+
+  - name: user-service
+    url: http://user-service:9810         # ✅ added userservice too
+    routes:
+      - name: user-route
+        paths:
+          - /user/v1
+        strip_path: false
+        preserve_host: false
+    plugins:
+      - name: auth-injector
+        config:
+          auth_service_url: "http://auth-service:9895/auth/v1/ping"
