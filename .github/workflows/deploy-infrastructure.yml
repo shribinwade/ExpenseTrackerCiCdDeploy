@@ -10,6 +10,8 @@ env:
   AWS_REGION: ap-south-1
 
 jobs:
+
+
   deploy-infrastructure:
     runs-on: ubuntu-latest
     steps:
@@ -22,6 +24,24 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Cleanup Failed Stack
+        run: |
+          STATUS=$(aws cloudformation describe-stacks \
+          --stack-name infrastructure-stack \
+          --query "Stacks[0].StackStatus" \
+          --output text 2>/dev/null || echo "DOES_NOT_EXIST")
+
+          echo "Current stack status: $STATUS"
+
+          if [ "$STATUS" == "ROLLBACK_COMPLETE" ] || [ "$STATUS" == "CREATE_FAILED" ]; then
+          echo "Deleting failed stack..."
+          aws cloudformation delete-stack --stack-name infrastructure-stack
+          aws cloudformation wait stack-delete-complete --stack-name infrastructure-stack
+          echo "Stack deleted successfully"
+          else
+          echo "Stack is in $STATUS state, no cleanup needed"
+          fi
 
       - name: Deploy Infrastructure Stack
         run: |
