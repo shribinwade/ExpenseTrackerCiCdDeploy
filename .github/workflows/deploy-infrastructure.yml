@@ -10,8 +10,6 @@ env:
   AWS_REGION: ap-south-1
 
 jobs:
-
-
   deploy-infrastructure:
     runs-on: ubuntu-latest
     steps:
@@ -60,14 +58,20 @@ jobs:
 
       - name: Upload infrastructure outputs to S3
         env:
-          BUCKET_NAME: "expensetrackerinfra"
-          INFRA_FILE_NAME: "infrastructure-outputs.json"
+         BUCKET_NAME: "expensetrackerinfra-${{ secrets.AWS_ACCOUNT_ID }}"
+         INFRA_FILE_NAME: "infrastructure-outputs.json"
         run: |
-          if ! aws s3api head-bucket --bucket "$BUCKET_NAME"; then
-            aws s3 mb s3://$BUCKET_NAME --region ${{ env.AWS_REGION }}
+          # Check if bucket exists
+          if aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
+             echo "Bucket $BUCKET_NAME already exists"
           else
-            echo "Bucket $BUCKET_NAME already exists"
+             echo "Creating bucket $BUCKET_NAME..."
+             aws s3api create-bucket \
+             --bucket "$BUCKET_NAME" \
+             --region ${{ env.AWS_REGION }} \
+             --create-bucket-configuration LocationConstraint=${{ env.AWS_REGION }}
           fi
+
           echo "Uploading to Bucket: $BUCKET_NAME"
           aws s3 cp $INFRA_FILE_NAME s3://$BUCKET_NAME/infrastructure-outputs.json
           echo "Successfully uploaded $INFRA_FILE_NAME to s3://$BUCKET_NAME/"
