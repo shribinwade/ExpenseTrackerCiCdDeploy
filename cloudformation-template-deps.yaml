@@ -215,7 +215,7 @@ Resources:
           Subnets: !Ref PrivateSubnets
       ServiceRegistries:
         - RegistryArn: !GetAtt MySQLServiceDiscovery.Arn
-#
+
   KafkaService:
     Type: AWS::ECS::Service
     Properties:
