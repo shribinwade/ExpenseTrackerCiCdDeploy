@@ -25,3 +25,44 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }} 
 
+     - name: Deploy Infratructure Stack
+       run: |
+         aws cloudformation deploy \
+           --template-file cloudformation-template--initial-infra.yaml\
+           --stack-name infratructure-stack \
+           --capabilities CAPABILITY_NAMED_IAM
+
+     - name: Output Infratructure Stack Info
+       run: |
+         aws cloudformation describe-stacks \
+          --stack-name infratructure-stack \      
+          --query "Stacks[0].Outputs" \
+          > infratructure-output.json
+         cat infratructure-outputs.json
+     
+     - name: Upload infratructure outputs to S3
+       env: 
+         BUCKET_NAME: "expensetrackerinfra"
+         INFRA_FILE_NMAE: "infrastructure-outputs.json"
+       run: |
+         if ! aws s3api head-bucket --bucket-name "$BUCKET_NAME"; then
+           aws s3 mb s3://$BUCKET_NAME --region ${{ env.AWS_REGION }}
+         else
+           echo "Bucket $BUCKET_NAME already exists"
+         fi 
+             echo "Uploading to Bucket: $BUCKET_NAME"
+             aws s3 cp $INFRA_FILE_NAME s3://$BUCKET_NAME/infrastructure-outputs.json
+             echo "Successfully uploaded $INFRA_FILE_NAME to s3://$BUCKET_NAME/"
+
+
+
+
+        
+
+
+
+
+
+
+
+
