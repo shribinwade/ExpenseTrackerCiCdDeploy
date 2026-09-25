@@ -3,21 +3,20 @@ _transform: true
 
 services:
   - name: kong-status
-    url: http://localhost:8001     # ✅ container name + actual port
+    url: http://localhost:8001
     routes:
-          - name: status-route
-            paths:
-             - /status
-            strip_path: true
-            
+      - name: status-route
+        paths:
+          - /status
+        strip_path: true
     plugins:
-          - name: request-termination
-            config:
-              status_code: 200
-              message: "OK"
-              
+      - name: request-termination
+        config:
+          status_code: 200
+          message: "OK"
+
   - name: expense-service
-    url: http://expense-service.public:9820      # ✅ container name + actual port
+    url: http://expense-service-alb.public:80
     routes:
       - name: expense-route
         paths:
@@ -27,10 +26,10 @@ services:
     plugins:
       - name: auth-injector
         config:
-          auth_service_url: "http://auth-service.public:9895/auth/v1/ping"   # ✅ fixed port
+          auth_service_url: "http://auth-service-alb.public:80/auth/v1/ping"
 
   - name: auth-service
-    url: http://auth-service.public:9895         # ✅ container name + actual port
+    url: http://auth-service-alb.public:80
     routes:
       - name: auth-route
         paths:
@@ -39,7 +38,7 @@ services:
         preserve_host: false
 
   - name: user-service
-    url: http://user-service.public:9810         # ✅ added userservice too
+    url: http://user-service-alb.public:80
     routes:
       - name: user-route
         paths:
@@ -49,10 +48,10 @@ services:
     plugins:
       - name: auth-injector
         config:
-          auth_service_url: "http://auth-service.public:9895/auth/v1/ping"
-  
+          auth_service_url: "http://auth-service-alb.public:80/auth/v1/ping"
+
   - name: data-science-service
-    url: http://ds-service.public:80         # ✅ added userservice too
+    url: http://ds-service-alb.public:80
     routes:
       - name: data-science-route
         paths:
@@ -62,4 +61,4 @@ services:
     plugins:
       - name: auth-injector
         config:
-          auth_service_url: "http://auth-service.public:9895/auth/v1/ping"
+          auth_service_url: "http://auth-service-alb.public:80/auth/v1/ping"
