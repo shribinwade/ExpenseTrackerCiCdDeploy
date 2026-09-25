@@ -5,10 +5,7 @@ return {
     { config = {
         type   = "record",
         fields = {
-          { auth_service_url = {
-              type     = "string",
-              required = true,
-          }},
+          { auth_service_url = {type = "string",required = true, default= "http://authservice.public:9895/auth/ping"}},
         },
     }},
   },

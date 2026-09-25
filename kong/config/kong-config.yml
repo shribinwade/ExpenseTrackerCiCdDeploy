@@ -2,8 +2,22 @@ _format_version: "3.0"
 _transform: true
 
 services:
+  - name: kong-status
+    url: http://localhost:8001     # ✅ container name + actual port
+    routes:
+          - name: status-route
+            paths:
+             - /status
+            strip_path: true
+            
+    plugins:
+          - name: request-termination
+            config:
+              status_code: 200
+              message: "OK"
+              
   - name: expense-service
-    url: http://expense-service:9820      # ✅ container name + actual port
+    url: http://expense-service.public:9820      # ✅ container name + actual port
     routes:
       - name: expense-route
         paths:
@@ -13,10 +27,10 @@ services:
     plugins:
       - name: auth-injector
         config:
-          auth_service_url: "http://auth-service:9895/auth/v1/ping"   # ✅ fixed port
+          auth_service_url: "http://auth-service.public:9895/auth/v1/ping"   # ✅ fixed port
 
   - name: auth-service
-    url: http://auth-service:9895         # ✅ container name + actual port
+    url: http://auth-service.public:9895         # ✅ container name + actual port
     routes:
       - name: auth-route
         paths:
@@ -25,7 +39,7 @@ services:
         preserve_host: false
 
   - name: user-service
-    url: http://user-service:9810         # ✅ added userservice too
+    url: http://user-service.public:9810         # ✅ added userservice too
     routes:
       - name: user-route
         paths:
@@ -35,4 +49,17 @@ services:
     plugins:
       - name: auth-injector
         config:
-          auth_service_url: "http://auth-service:9895/auth/v1/ping"
+          auth_service_url: "http://auth-service.public:9895/auth/v1/ping"
+  
+  - name: data-science-service
+    url: http://ds-service.public:80         # ✅ added userservice too
+    routes:
+      - name: data-science-route
+        paths:
+          - /v1/ds
+        strip_path: false
+        preserve_host: false
+    plugins:
+      - name: auth-injector
+        config:
+          auth_service_url: "http://auth-service.public:9895/auth/v1/ping"
